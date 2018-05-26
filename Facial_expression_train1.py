@@ -133,12 +133,6 @@ class PFER_expression(object):
                 tile_ratio=self.tile_ratio
             )
 
-        # classifier on original facial images and generated facial images
-        self.D_input_ex_logits, self.D_input_pose_logits = self.discriminator_acc(
-            image=self.input_image,
-            is_training=self.is_training
-        )
-
         # discriminator on identity
         self.D_f, self.D_f_logits = self.discriminator_i(
             f=self.f,
@@ -167,6 +161,12 @@ class PFER_expression(object):
             pose=self.pose,
             is_training=self.is_training,
             reuse_variables=True
+        )
+
+        # classifier on original facial images and generated facial images
+        self.D_input_ex_logits, self.D_input_pose_logits = self.discriminator_acc(
+            image=self.input_image,
+            is_training=self.is_training
         )
 
         # ************************************* loss functions *******************************************************
@@ -262,7 +262,7 @@ class PFER_expression(object):
         self.saver = tf.train.Saver(max_to_keep=10)
 
     #get the train data and test data
-    def get_batch_train(self, enable_shuffle=True, idx=0):
+    def get_batch_train_test(self, enable_shuffle=True, idx=0):
         # # *************************** load file names of images ******************************************************
         if self.is_training:
             if enable_shuffle:
@@ -467,11 +467,11 @@ class PFER_expression(object):
 
     def train(self,
               num_epochs=100,# number of epochs
-              # learning_rate=0.0002,  # learning rate of optimizer
-              learning_rate=0.00005,  # learning rate of optimizer
+              learning_rate=0.0002,  # learning rate of optimizer
+              #learning_rate=0.00005,  # learning rate of optimizer
               beta1=0.5,  # parameter for Adam optimizer
-              # decay_rate=0.99,  # learning rate decay (0, 1], 1 means no decay
-              decay_rate=1,  # learning rate decay (0, 1], 1 means no decay
+              decay_rate=0.99,  # learning rate decay (0, 1], 1 means no decay
+              #decay_rate=1,  # learning rate decay (0, 1], 1 means no decay
               enable_shuffle=True,  # enable shuffle of the dataset
               use_trained_model=True,# used the saved checkpoint to initialize the model
               ):
@@ -561,7 +561,6 @@ class PFER_expression(object):
             else:
                 print("\tFAILED >_<!")
 
-        # ************* get some random samples as testing data to visualize the learning process *********************
 
         #if sparse_softmax_cross_entropy_with_logits is used
         # sample_images, sample_label_expression, sample_label_pose, sample_label_expression1, sample_label_pose1, batch_files_name = self.get_batch_sample(0)
@@ -585,8 +584,8 @@ class PFER_expression(object):
                 self.is_training=True
 
                 #if sparse_softmax_cross_entropy_with_logits is used
-                # batch_images, batch_label_expression, batch_label_pose, batch_label_expression1, batch_label_pose1, batch_files_name = self.get_batch_train(enable_shuffle,ind_batch)
-                batch_images, batch_label_expression, batch_label_pose, batch_files_name = self.get_batch_train(enable_shuffle,ind_batch)
+                # batch_images, batch_label_expression, batch_label_pose, batch_label_expression1, batch_label_pose1, batch_files_name = self.get_batch_train_test(enable_shuffle,ind_batch)
+                batch_images, batch_label_expression, batch_label_pose, batch_files_name = self.get_batch_train_test(enable_shuffle,ind_batch)
 
                 #map batch_label_expression and batch_label_pose to onehot with the target as 1, others as 0
                 expression_label =map(lambda x:[[i,0][i<0] for i in x], batch_label_expression)
@@ -883,14 +882,14 @@ class PFER_expression(object):
             name = '{:02d}.png'.format(epoch+1)
             self.sample(sample_images, sample_label_expression, sample_label_pose, name)
             self.test(sample_images, sample_label_pose, name, sample_label_expression)
-
-            print (self.is_training)
+			#self.test_acc(sample_images, sample_expression_label, sample_pose_label)
+            #print (self.is_training)
 
             for ind_batch in range(self.num_batches2):
+            	self.is_training= False
+                # batch_images, batch_label_expression, batch_label_pose, batch_label_expression1, batch_label_pose1, batch_files_name = self.get_batch_train_test(enable_shuffle, ind_batch)
 
-                # batch_images, batch_label_expression, batch_label_pose, batch_label_expression1, batch_label_pose1, batch_files_name = self.get_batch_train(enable_shuffle, ind_batch)
-
-                batch_images, batch_label_expression, batch_label_pose, batch_files_name = self.get_batch_train(enable_shuffle, ind_batch)
+                batch_images, batch_label_expression, batch_label_pose, batch_files_name = self.get_batch_train_test(enable_shuffle, ind_batch)
 
                 batch_label_expressiononehot = map(lambda x: [[i, 0][i < 0] for i in x], batch_label_expression)
                 batch_label_poseonehot = map(lambda x: [[i, 0][i < 0] for i in x], batch_label_pose)
