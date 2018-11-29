@@ -46,7 +46,7 @@ class PFER_expression(object):
         self.save_dir = save_dir
         self.num_poses = num_poses
 
-        # path of the file of trainset. trainMULTIPIE.txt: name/expression label/pose label
+        # path of the file of trainset. the content style of trainMULTIPIE.txt: name expression-label pose-label
         self.pathtrain = '/path/to/your/data'
         self.file_names = np.loadtxt(self.pathtrain + 'trainMULTIPIE.txt', dtype=bytes, delimiter=' ').astype(str)
         np.random.shuffle(self.file_names)
