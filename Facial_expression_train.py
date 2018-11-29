@@ -954,7 +954,8 @@ class PFER_expression(object):
 
         f = concat_label(f, y, duplicate=duplicate)
         if enable_tile_label:
-            duplicate = int(self.num_fx * tile_ratio / self.num_poses)
+            # duplicate = int(self.num_fx * tile_ratio / self.num_poses)
+            duplicate = int(self.num_fx * tile_ratio / 2)
         else:
             duplicate = 1
         f = concat_label(f, pose, duplicate=duplicate)
@@ -1074,7 +1075,8 @@ class PFER_expression(object):
             current = tf.nn.relu(current)
             if i == 0:
                 current = concat_label(current, y)
-                current = concat_label(current, pose, int(self.num_categories / self.num_poses))
+                # current = concat_label(current, pose, int(self.num_categories / self.num_poses))
+                current = concat_label(current, pose, int(self.num_categories / 2))
         # fully connection layer
         name = 'D_att_fc1'
         current = fc(
@@ -1090,7 +1092,7 @@ class PFER_expression(object):
             name=name
         )
         # output
-        return tf.nn.sigmoid(current1), current
+        return tf.nn.sigmoid(current1), current1
 
     #(1) classifier --VGG19
     def discriminator_acc(self, image, is_training=True, reuse_variables=False, num_hidden_layer_channels=(32, 32, 64, 64, 128, 128, 128, 128, 256, 256, 256, 256, 512, 512, 512, 512), enable_bn=True):
